@@ -1,14 +1,35 @@
 const Item = require("../models/Item");
 
+const {
+  addPriority,
+  updatePriority,
+} = require("../services/itemPriorityService");
+
 const createItem = async (req, res) => {
   try {
-    const { title, category, description } = req.body;
+    const {
+      title,
+      category,
+      description,
+      priority,
+      status,
+    } = req.body;
+
+    const userId = req.user.userId;
+
+    await addPriority({
+      userId,
+      category,
+      priority,
+    });
 
     const item = await Item.create({
       title,
       category,
       description,
-      userId: req.user.userId,
+      priority,
+      status,
+      userId,
     });
 
     res.status(201).json(item);
@@ -24,7 +45,10 @@ const getItems = async (req, res) => {
   try {
     const items = await Item.find({
       userId: req.user.userId,
-    }).sort({ createdAt: -1 });
+    }).sort({
+      category: 1,
+      priority: 1,
+    });
 
     res.json(items);
   } catch (error) {
@@ -55,33 +79,47 @@ const getItemById = async (req, res) => {
       error: error.message,
     });
   }
-}; 
+};
 
 const updateItem = async (req, res) => {
   try {
-    const { title, category, description } = req.body;
+    const {
+      title,
+      category,
+      description,
+      priority,
+      status,
+    } = req.body;
 
-    const item = await Item.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        userId: req.user.userId,
-      },
-      {
-        title,
-        category,
-        description,
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const userId = req.user.userId;
+
+    const item = await Item.findOne({
+      _id: req.params.id,
+      userId,
+    });
 
     if (!item) {
       return res.status(404).json({
         message: "مطلب پیدا نشد",
       });
     }
+
+    await updatePriority({
+      itemId: item._id,
+      userId,
+      oldCategory: item.category,
+      newCategory: category,
+      oldPriority: item.priority,
+      newPriority: priority,
+    });
+
+    item.title = title;
+    item.category = category;
+    item.description = description;
+    item.priority = priority;
+    item.status = status;
+
+    await item.save();
 
     res.json(item);
   } catch (error) {
@@ -94,7 +132,7 @@ const updateItem = async (req, res) => {
 
 const deleteItem = async (req, res) => {
   try {
-    const item = await Item.findOneAndDelete({
+    const item = await Item.findOne({
       _id: req.params.id,
       userId: req.user.userId,
     });
@@ -104,6 +142,14 @@ const deleteItem = async (req, res) => {
         message: "مطلب پیدا نشد",
       });
     }
+
+    await removePriority({
+      userId: req.user.userId,
+      category: item.category,
+      priority: item.priority,
+    });
+
+    await item.deleteOne();
 
     res.json({
       message: "مطلب با موفقیت حذف شد",

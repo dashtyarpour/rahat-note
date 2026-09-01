@@ -19,6 +19,23 @@ const itemSchema = new mongoose.Schema(
       required: true,
     },
 
+    priority: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    status: {
+      type: String,
+      enum: [
+        "NOT_STARTED",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "DEFERRED",
+      ],
+      default: "NOT_STARTED",
+    },
+
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

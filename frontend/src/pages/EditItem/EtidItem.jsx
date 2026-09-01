@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+
 import { useNavigate, useParams } from "react-router-dom";
+
 import api from "../../services/api";
-import styles from "../CreateItem/createItem.module.css";
+
+import styles from "./EditItem.module.css";
 
 function EditItem() {
   const { id } = useParams();
@@ -10,6 +13,8 @@ function EditItem() {
   const [form, setForm] = useState({
     title: "",
     category: "",
+    priority: 1,
+    status: "NOT_STARTED",
     description: "",
   });
 
@@ -24,6 +29,8 @@ function EditItem() {
         setForm({
           title: response.data.title,
           category: response.data.category,
+          priority: response.data.priority,
+          status: response.data.status,
           description: response.data.description,
         });
       } catch (error) {
@@ -46,10 +53,22 @@ function EditItem() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (
+      !form.title ||
+      !form.category ||
+      !form.priority ||
+      !form.description
+    ) {
+      return;
+    }
+
     try {
       setSaving(true);
 
-      await api.put(`/items/${id}`, form);
+      await api.put(`/items/${id}`, {
+        ...form,
+        priority: Number(form.priority),
+      });
 
       navigate(`/item/${id}`);
     } catch (error) {
@@ -71,14 +90,17 @@ function EditItem() {
 
           <h1>ویرایش مطلب</h1>
 
-          <p>اطلاعات مطلب را تغییر دهید و ذخیره کنید.</p>
+          <p>
+            اطلاعات مطلب را تغییر دهید و ذخیره کنید.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
-            <label>عنوان</label>
+            <label htmlFor="title">عنوان</label>
 
             <input
+              id="title"
               type="text"
               name="title"
               value={form.title}
@@ -86,21 +108,58 @@ function EditItem() {
             />
           </div>
 
-          <div className={styles.formGroup}>
-            <label>دسته‌بندی</label>
+          <div className={styles.row}>
+            <div className={styles.formGroup}>
+              <label htmlFor="category">دسته‌بندی</label>
 
-            <input
-              type="text"
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-            />
+              <input
+                id="category"
+                type="text"
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="priority">اولویت</label>
+
+              <input
+                id="priority"
+                type="number"
+                name="priority"
+                min="1"
+                value={form.priority}
+                onChange={handleChange}
+              />
+
+              <span className={styles.helper}>
+                عدد کوچک‌تر یعنی اولویت بالاتر
+              </span>
+            </div>
           </div>
 
           <div className={styles.formGroup}>
-            <label>توضیحات</label>
+            <label htmlFor="status">وضعیت</label>
+
+            <select
+              id="status"
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+            >
+              <option value="NOT_STARTED">شروع نشده</option>
+              <option value="IN_PROGRESS">در حال انجام</option>
+              <option value="COMPLETED">تمام شده</option>
+              <option value="DEFERRED">به تعویق افتاده</option>
+            </select>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="description">توضیحات</label>
 
             <textarea
+              id="description"
               name="description"
               value={form.description}
               onChange={handleChange}
@@ -111,7 +170,7 @@ function EditItem() {
           <div className={styles.actions}>
             <button
               type="button"
-              className={styles.cancel}
+              className={styles.cancelButton}
               onClick={() => navigate(`/item/${id}`)}
             >
               انصراف
@@ -119,7 +178,7 @@ function EditItem() {
 
             <button
               type="submit"
-              className={styles.save}
+              className={styles.submitButton}
               disabled={saving}
             >
               {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}

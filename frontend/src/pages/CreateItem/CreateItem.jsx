@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import api from "../../services/api";
+
 import styles from "./CreateItem.module.css";
 
 function CreateItem() {
@@ -9,6 +11,8 @@ function CreateItem() {
   const [form, setForm] = useState({
     title: "",
     category: "",
+    priority: 1,
+    status: "NOT_STARTED",
     description: "",
   });
 
@@ -24,14 +28,22 @@ function CreateItem() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.title || !form.category || !form.description) {
+    if (
+      !form.title ||
+      !form.category ||
+      !form.priority ||
+      !form.description
+    ) {
       return;
     }
 
     try {
       setLoading(true);
 
-      await api.post("/items", form);
+      await api.post("/items", {
+        ...form,
+        priority: Number(form.priority),
+      });
 
       navigate("/");
     } catch (error) {
@@ -69,17 +81,53 @@ function CreateItem() {
             />
           </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="category">دسته‌بندی</label>
+          <div className={styles.row}>
+            <div className={styles.formGroup}>
+              <label htmlFor="category">دسته‌بندی</label>
 
-            <input
-              id="category"
-              type="text"
-              name="category"
-              value={form.category}
+              <input
+                id="category"
+                type="text"
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                placeholder="مثلاً برنامه نویسی"
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="priority">اولویت</label>
+
+              <input
+                id="priority"
+                type="number"
+                name="priority"
+                min="1"
+                value={form.priority}
+                onChange={handleChange}
+                placeholder="مثلاً 1"
+              />
+
+              <span className={styles.helper}>
+                عدد کوچک‌تر یعنی اولویت بالاتر
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="status">وضعیت</label>
+
+            <select
+              id="status"
+              name="status"
+              value={form.status}
               onChange={handleChange}
-              placeholder="مثلاً برنامه نویسی"
-            />
+            >
+              <option value="NOT_STARTED">شروع نشده</option>
+              <option value="IN_PROGRESS">در حال انجام</option>
+              <option value="COMPLETED">تمام شده</option>
+              <option value="DEFERRED">به تعویق افتاده</option>
+            </select>
           </div>
 
           <div className={styles.formGroup}>
