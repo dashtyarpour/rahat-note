@@ -1,20 +1,29 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+
+import { Link, useSearchParams } from "react-router-dom";
+
 import api from "../../services/api";
+
 import { useAuth } from "../../context/AuthContext";
+
 import ItemCard from "../../components/ItemCard/ItemCard";
+
 import styles from "./Home.module.css";
 
 function Home() {
   const { user, logout } = useAuth();
 
   const [items, setItems] = useState([]);
-  const [category, setCategory] = useState("همه");
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const category = searchParams.get("category") || "همه";
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
         const response = await api.get("/items");
+
         setItems(response.data);
       } catch (error) {
         console.error(error);
@@ -33,6 +42,16 @@ function Home() {
     category === "همه"
       ? items
       : items.filter((item) => item.category === category);
+
+  const handleCategoryChange = (itemCategory) => {
+    if (itemCategory === "همه") {
+      setSearchParams({});
+    } else {
+      setSearchParams({
+        category: itemCategory,
+      });
+    }
+  };
 
   return (
     <main className={styles.home}>
@@ -66,7 +85,10 @@ function Home() {
           )}
         </div>
 
-        <Link to="/create" className={styles.createButton}>
+        <Link
+          to="/create"
+          className={styles.createButton}
+        >
           + افزودن مطلب
         </Link>
       </header>
@@ -84,7 +106,9 @@ function Home() {
                     ? styles.active
                     : ""
                 }
-                onClick={() => setCategory(itemCategory)}
+                onClick={() =>
+                  handleCategoryChange(itemCategory)
+                }
               >
                 {itemCategory}
               </button>

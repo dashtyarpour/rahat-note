@@ -44,9 +44,7 @@ function ItemDetails() {
   if (loading) {
     return (
       <main className={styles.page}>
-        <div className={styles.loading}>
-          در حال بارگذاری...
-        </div>
+        <div className={styles.loading}>در حال بارگذاری...</div>
       </main>
     );
   }
@@ -57,9 +55,7 @@ function ItemDetails() {
         <div className={styles.notFound}>
           <h1>مطلب پیدا نشد</h1>
 
-          <p>
-            مطلبی که به دنبال آن هستید وجود ندارد.
-          </p>
+          <p>مطلبی که به دنبال آن هستید وجود ندارد.</p>
 
           <Link to="/" className={styles.backButton}>
             بازگشت به مطالب
@@ -75,7 +71,9 @@ function ItemDetails() {
         <div className={styles.topBar}>
           <button
             className={styles.back}
-            onClick={() => navigate(-1)}
+            onClick={() =>
+              navigate(`/?category=${encodeURIComponent(item.category)}`)
+            }
           >
             ← بازگشت
           </button>
@@ -98,9 +96,7 @@ function ItemDetails() {
           </div>
         </div>
 
-        <div className={styles.category}>
-          {item.category}
-        </div>
+        <div className={styles.category}>{item.category}</div>
 
         <h1>{item.title}</h1>
 
@@ -110,9 +106,7 @@ function ItemDetails() {
 
         <div className={styles.divider} />
 
-        <div className={styles.description}>
-          {item.description}
-        </div>
+        <div className={styles.description}>{item.description}</div>
       </article>
 
       <ConfirmDialog
